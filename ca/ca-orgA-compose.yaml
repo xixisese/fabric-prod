@@ -1,0 +1,21 @@
+version: "3.9"
+
+volumes:
+    ca-orgA:
+
+services:
+  ca-tls:
+    container_name: ca-orgA
+    image: hyperledger/fabric-ca
+    command: sh -c 'fabric-ca-server start -d -b admin-ca-orgA:admin-ca-orgApw --port 7152'
+    environment:
+      - FABRIC_CA_SERVER_HOME=/tmp/tls
+      - FABRIC_CA_SERVER_TLS_ENABLED=true
+      - FABRIC_CA_SERVER_CA_NAME=ca-orgA
+      - FABRIC_CA_SERVER_CSR_HOSTS=127.0.0.1
+      - FABRIC_CA_SERVER_DEBUG=true
+    volumes:
+        - ca-orgA:/tmp/tls
+    ports:
+      - 7152:7152
+

@@ -1,0 +1,251 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+---
+################################################################################
+#
+#   ORGANIZATIONS
+#
+#   This section defines the organizational identities that can be referenced
+#   in the configuration profiles.
+#
+################################################################################
+# 定义组织
+Organizations:
+
+    # SampleOrg defines an MSP using the sampleconfig. It should never be used
+    # in production but may be used as a template for other definitions.
+    - &OrgA
+        # Name is the key by which this org will be referenced in channel
+        # configuration transactions.
+        # Name can include alphanumeric characters as well as dots and dashes.
+        Name: OrgA
+
+        # ID is the key by which this org's MSP definition will be referenced.
+        # ID can include alphanumeric characters as well as dots and dashes.
+        ID: OrgA
+
+        # MSPDir is the filesystem path which contains the MSP configuration.
+        MSPDir: /Users/lc/mhfabric_prod/msp/orgA/msp
+
+        # Policies defines the set of policies at this level of the config tree
+        # For organization policies, their canonical path is usually
+        #   /Channel/<Application|Orderer>/<OrgName>/<PolicyName>
+        Policies: &OrgAPolicies
+            Readers:
+                Type: Signature
+                Rule: "OR('OrgA.member')"
+                # If your MSP is configured with the new NodeOUs, you might
+                # want to use a more specific rule like the following:
+                # Rule: "OR('SampleOrg.admin', 'SampleOrg.peer', 'SampleOrg.client')"
+            Writers:
+                Type: Signature
+                Rule: "OR('OrgA.member')"
+                # If your MSP is configured with the new NodeOUs, you might
+                # want to use a more specific rule like the following:
+                # Rule: "OR('SampleOrg.admin', 'SampleOrg.client')"
+            Admins:
+                Type: Signature
+                Rule: "OR('OrgA.admin')"
+            Endorsement:
+                Type: Signature
+                Rule: "OR('OrgA.member')"
+
+        # OrdererEndpoints is a list of all orderers this org runs which clients
+        # and peers may to connect to to push transactions and receive blocks respectively.
+        OrdererEndpoints:
+            - "orderer1.orgA:7050"
+            - "orderer2.orgA:7051"
+
+    - &OrgB
+        # Name is the key by which this org will be referenced in channel
+        # configuration transactions.
+        # Name can include alphanumeric characters as well as dots and dashes.
+        Name: OrgB
+
+        # ID is the key by which this org's MSP definition will be referenced.
+        # ID can include alphanumeric characters as well as dots and dashes.
+        ID: OrgB
+
+        # MSPDir is the filesystem path which contains the MSP configuration.
+        MSPDir: /Users/lc/mhfabric_prod/msp/orgB/msp
+
+        # Policies defines the set of policies at this level of the config tree
+        # For organization policies, their canonical path is usually
+        #   /Channel/<Application|Orderer>/<OrgName>/<PolicyName>
+        Policies: &OrgBPolicies
+            Readers:
+                Type: Signature
+                Rule: "OR('OrgB.member')"
+                # If your MSP is configured with the new NodeOUs, you might
+                # want to use a more specific rule like the following:
+                # Rule: "OR('SampleOrg.admin', 'SampleOrg.peer', 'SampleOrg.client')"
+            Writers:
+                Type: Signature
+                Rule: "OR('OrgB.member')"
+                # If your MSP is configured with the new NodeOUs, you might
+                # want to use a more specific rule like the following:
+                # Rule: "OR('SampleOrg.admin', 'SampleOrg.client')"
+            Admins:
+                Type: Signature
+                Rule: "OR('OrgB.admin')"
+            Endorsement:
+                Type: Signature
+                Rule: "OR('OrgB.member')"
+
+        # OrdererEndpoints is a list of all orderers this org runs which clients
+        # and peers may to connect to to push transactions and receive blocks respectively.
+        OrdererEndpoints:
+            - "orderer1.orgB:7052"
+
+################################################################################
+#
+#   CAPABILITIES
+#
+#   This section defines the capabilities of fabric network. This is a new
+#   concept as of v1.1.0 and should not be utilized in mixed networks with
+#   v1.0.x peers and orderers.  Capabilities define features which must be
+#   present in a fabric binary for that binary to safely participate in the
+#   fabric network.  For instance, if a new MSP type is added, newer binaries
+#   might recognize and validate the signatures from this type, while older
+#   binaries without this support would be unable to validate those
+#   transactions.  This could lead to different versions of the fabric binaries
+#   having different world states.  Instead, defining a capability for a channel
+#   informs those binaries without this capability that they must cease
+#   processing transactions until they have been upgraded.  For v1.0.x if any
+#   capabilities are defined (including a map with all capabilities turned off)
+#   then the v1.0.x peer will deliberately crash.
+#
+################################################################################
+Capabilities:
+    # Channel capabilities apply to both the orderers and the peers and must be
+    # supported by both.
+    # Set the value of the capability to true to require it.
+    Channel: &ChannelCapabilities
+        # V2.0 for Channel is a catchall flag for behavior which has been
+        # determined to be desired for all orderers and peers running at the v2.0.0
+        # level, but which would be incompatible with orderers and peers from
+        # prior releases.
+        # Prior to enabling V2.0 channel capabilities, ensure that all
+        # orderers and peers on a channel are at v2.0.0 or later.
+        V2_0: true
+
+    # Orderer capabilities apply only to the orderers, and may be safely
+    # used with prior release peers.
+    # Set the value of the capability to true to require it.
+    Orderer: &OrdererCapabilities
+        # V1.1 for Orderer is a catchall flag for behavior which has been
+        # determined to be desired for all orderers running at the v1.1.x
+        # level, but which would be incompatible with orderers from prior releases.
+        # Prior to enabling V2.0 orderer capabilities, ensure that all
+        # orderers on a channel are at v2.0.0 or later.
+        V2_0: true
+
+    # Application capabilities apply only to the peer network, and may be safely
+    # used with prior release orderers.
+    # Set the value of the capability to true to require it.
+    Application: &ApplicationCapabilities
+        # V2.0 for Application enables the new non-backwards compatible
+        # features and fixes of fabric v2.0.
+        # Prior to enabling V2.0 orderer capabilities, ensure that all
+        # orderers on a channel are at v2.0.0 or later.
+        V2_0: true
+
+################################################################################
+#
+#   SECTION: Application
+#
+#   - This section defines the values to encode into a config transaction or
+#   genesis block for application related parameters
+#
+################################################################################
+# 定义Application Channel属性
+Application: &ApplicationDefaults
+
+    # Organizations is the list of orgs which are defined as participants on
+    # the application side of the network
+    Organizations:
+
+    # Policies defines the set of policies at this level of the config tree
+    # For Application policies, their canonical path is
+    #   /Channel/Application/<PolicyName>
+    Policies:
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        Admins:
+            Type: ImplicitMeta
+            Rule: "ANY Admins"
+        LifecycleEndorsement:
+            Type: ImplicitMeta
+            Rule: "ANY Endorsement"
+        Endorsement:
+            Type: ImplicitMeta
+            Rule: "ANY Endorsement"
+
+    Capabilities:
+        <<: *ApplicationCapabilities
+
+
+################################################################################
+#
+#   CHANNEL
+#
+#   This section defines the values to encode into a config transaction or
+#   genesis block for channel related parameters.
+#
+################################################################################
+Channel: &ChannelDefaults
+    # Policies defines the set of policies at this level of the config tree
+    # For Channel policies, their canonical path is
+    #   /Channel/<PolicyName>
+    Policies:
+        # Who may invoke the 'Deliver' API
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        # Who may invoke the 'Broadcast' API
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        # By default, who may modify elements at this config level
+        Admins:
+            Type: ImplicitMeta
+            Rule: "ANY Admins"
+
+
+    # Capabilities describes the channel level capabilities, see the
+    # dedicated Capabilities section elsewhere in this file for a full
+    # description
+    Capabilities:
+        <<: *ChannelCapabilities
+
+################################################################################
+#
+#   PROFILES
+#
+#   Different configuration profiles may be encoded here to be specified as
+#   parameters to the configtxgen tool. The profiles which specify consortiums
+#   are to be used for generating the orderer genesis block. With the correct
+#   consortium members defined in the orderer genesis block, channel creation
+#   requests may be generated with only the org member names and a consortium
+#   name.
+#
+################################################################################
+# 具体的Application Channel配置
+Profiles:
+    TwoOrgsChannel:
+        <<: *ChannelDefaults
+        Consortium: MHConsortium
+        Application:
+            <<: *ApplicationDefaults
+            Organizations:
+                - *OrgA
+                - *OrgB
+            Capabilities: *ApplicationCapabilities
+

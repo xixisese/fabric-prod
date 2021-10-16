@@ -1,0 +1,17 @@
+version: "3"
+
+networks:
+  mhnet:
+      external: true
+    
+services:
+  grafana:
+    container_name: grafana
+    image: grafana/grafana
+    hostname: grafana
+
+    networks:
+        mhnet:
+
+    ports:
+      - 3000:3000

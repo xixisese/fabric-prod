@@ -1,0 +1,26 @@
+version: "3"
+
+volumes:
+  etc-prometheus:
+  data-prometheus:  
+
+networks:
+  mhnet:
+      external: true
+      
+services:
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus
+    hostname: prometheus
+
+    volumes:
+        - etc-prometheus:/etc/prometheus
+        - data-prometheus:/prometheus
+
+    networks:
+        mhnet:
+
+    ports:
+        - 9090:9090
+

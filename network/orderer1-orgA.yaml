@@ -1,0 +1,52 @@
+version: "3"
+
+volumes:
+  etc-orderer1-orgA:
+  var-orderer1-orgA:
+    
+# 这里使用了外部的网络，需要手工运行docker network create命令提前建立
+networks:
+  mhnet:
+      external: true
+
+services:
+  orderer1-orgA:
+    container_name: orderer1-orgA
+    image: hyperledger/fabric-orderer:2.2.4
+    environment:
+      # 日志等级
+      - FABRIC_LOGGING_SPEC=INFO
+      # ORDERER的监听地址和端口，0.0.0.0标示本机所有地址
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_LISTENPORT=7050
+
+      # ORDERER所在组织的MSP ID
+      - ORDERER_GENERAL_LOCALMSPID=OrgA
+      # ORDERER自己的msp文件夹
+      - ORDERER_GENERAL_LOCALMSPDIR=/etc/hyperledger/fabric/mymsp
+      # ORDERER的TLS通讯证书相关
+      - ORDERER_GENERAL_TLS_ENABLED=true
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/etc/hyperledger/fabric/tls/orderer1-orgA.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/etc/hyperledger/fabric/tls/orderer1-orgA.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=/etc/hyperledger/fabric/tls/root-orgA.crt
+      # 指定创世区块的位置 
+      - ORDERER_GENERAL_BOOTSTRAPMETHOD=file  
+      - ORDERER_GENERAL_BOOTSTRAPFILE=/etc/hyperledger/fabric/genesis.block
+
+      # 系统监控配置
+      # 打开Prometheus接口
+      - ORDERER_METRICS_PROVIDER=prometheus
+      # 监控服务Operations Service端口
+      - ORDERER_OPERATIONS_LISTENADDRESS=0.0.0.0:17050   
+
+    command: orderer
+    working_dir: /var/hyperledger/data
+    hostname: orderer1.orgA
+    networks:
+        mhnet:
+    volumes:
+      - etc-orderer1-orgA:/etc/hyperledger/fabric
+      - var-orderer1-orgA:/var/hyperledger
+    ports:
+      - 7050:7050
+      - 17050:17050

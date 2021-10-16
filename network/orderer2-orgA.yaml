@@ -1,0 +1,50 @@
+version: "3"
+
+volumes:
+  etc-orderer2-orgA:
+  var-orderer2-orgA:
+
+networks:
+  mhnet:
+    external: true
+
+services:
+  orderer2-orgA:
+    container_name: orderer2-orgA
+    image: hyperledger/fabric-orderer:2.2.4
+    environment:
+      # Log Level
+      - FABRIC_LOGGING_SPEC=INFO
+      # Port
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_LISTENPORT=7051
+      # MSP 
+      - ORDERER_GENERAL_LOCALMSPID=OrgA
+      - ORDERER_GENERAL_LOCALMSPDIR=/etc/hyperledger/fabric/mymsp
+      # TLS
+      - ORDERER_GENERAL_TLS_ENABLED=true
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/etc/hyperledger/fabric/tls/orderer2-orgA.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/etc/hyperledger/fabric/tls/orderer2-orgA.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=/etc/hyperledger/fabric/tls/root-orgA.crt
+      # Bootstrap 
+      - ORDERER_GENERAL_BOOTSTRAPMETHOD=file  
+      - ORDERER_GENERAL_BOOTSTRAPFILE=/etc/hyperledger/fabric/genesis.block
+
+      # 系统监控配置
+      # 打开Prometheus接口
+      - ORDERER_METRICS_PROVIDER=prometheus
+      # 监控服务Operations Service端口
+      - ORDERER_OPERATIONS_LISTENADDRESS=0.0.0.0:17051   
+
+    command: orderer
+    working_dir: /var/hyperledger/data
+    hostname: orderer2.orgA
+    networks:
+        mhnet:
+    volumes:
+      - etc-orderer2-orgA:/etc/hyperledger/fabric
+      - var-orderer2-orgA:/var/hyperledger
+
+    ports:
+      - 7051:7051
+      - 17051:17051
