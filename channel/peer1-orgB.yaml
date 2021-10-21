@@ -41,6 +41,7 @@ services:
         - CORE_PEER_CHAINCODEADDRESS=peer1.orgB:8151
         - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:8151
         - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.orgB:8051
+        - CORE_PEER_GOSSIP_ENDPOINT=peer1.orgB:8051
         - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.orgB:8051
 
         # 监控配置          

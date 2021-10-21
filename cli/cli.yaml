@@ -1,0 +1,46 @@
+volumes:
+   etc-cli-orgA:
+   var-cli-orgA:
+
+networks:
+  mhnet:
+    external: true
+
+
+services:
+  cli-orgA:
+    container_name: cli-orgA
+    image: hyperledger/fabric-tools:2.2.4
+    tty: true
+    environment:
+        # MSPID, 本组织的OrgID，等同于configtx.yaml中配置的Organization的ID
+        - CORE_PEER_LOCALMSPID=OrgA
+        # 本组织admin的msp路径
+        - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/admin-msp
+
+
+        # Docker虚拟机的地址，在peer创建chaincode虚拟机时使用，在mac/windows上
+        - CORE_VM_ENDPOINT=unix:///var/run/docker.sock
+        # 设置chaincode的网络,一般设置和本peer网络一样
+        - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=mhnet
+        # 日志等级
+        - FABRIC_LOGGING_SPEC=INFO
+
+        # TLS通讯证书配置
+        - CORE_PEER_TLS_ENABLED=true
+        - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/root-orgA.crt
+
+        # Peer 端口配置
+        - CORE_PEER_ID=peer1-orgA
+        - CORE_PEER_ADDRESS=peer1.orgA:8050
+
+    command: sh
+    working_dir: /var/hyperledger/data
+    volumes:
+        # /var/run/docker.sock这个配置很关键，用于和上面的CORE_VM_ENDPOINT配合 ，指明docker程序的endpoint
+        - /var/run/docker.sock:/var/run/docker.sock
+        - etc-cli-orgA:/etc/hyperledger/fabric
+        - var-cli-orgA:/var/hyperledger
+
+    networks:
+        mhnet:
