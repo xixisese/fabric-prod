@@ -118,11 +118,10 @@ csr:
       OU: 
   hosts:
     - localhost
-    - orderer1.orgA
-    - orderer2.orgA
-    - orderer1.orgB 
-    - peer1.orgA 
-    - peer1.orgB
+    - orderer1.org1.com
+    - peer1.org1.com
+    - peer2.org1.com
+    - peer3.org1.com
 
 
 #############################################################################
