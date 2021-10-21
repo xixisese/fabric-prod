@@ -15,7 +15,10 @@ services:
     environment:
         # MSPID, 本组织的OrgID，等同于configtx.yaml中配置的Organization的ID
         - CORE_PEER_LOCALMSPID=OrgA
-        # 本组织admin的msp路径
+        # 本组织admin的msp路径,这个不同于peer的设置
+        # 之所以是admin的msp,是一些操作，比如join channel, 提交链码等，必须是admin操作
+        # 此时使用的工具，比如peer,需要CORE_PEER_MSPCONFIGPATH变量设置为admin的msp
+        # 才能执行peer channel join这样的操作
         - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/admin-msp
 
 

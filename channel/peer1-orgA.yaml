@@ -16,8 +16,8 @@ services:
     environment:
         # MSPID, 本组织的OrgID，等同于configtx.yaml中配置的Organization的ID
         - CORE_PEER_LOCALMSPID=OrgA
-        # 本组织admin的msp路径 
-        - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/admin-msp
+        # 本peer的msp路径 
+        - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/mymsp
 
 
         # Docker虚拟机的地址，在peer创建chaincode虚拟机时使用，在mac/windows上配置如下 
