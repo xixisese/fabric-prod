@@ -1,0 +1,154 @@
+version: "3"
+
+volumes:
+  etc-orderer-dev:
+  var-orderer-dev:
+  etc-peer1-dev:
+  var-peer1-dev:
+  etc-cli-dev:
+  var-cli-dev:
+    
+# 这里使用了外部的网络，需要手工运行docker network create命令提前建立
+networks:
+  mhnet:
+      external: true
+
+# orderer service
+services:
+  orderer-dev:
+    container_name: orderer-dev
+    image: hyperledger/fabric-orderer:2.2.4
+    environment:
+      # 日志等级
+      - FABRIC_LOGGING_SPEC=INFO
+      # ORDERER的监听地址和端口，0.0.0.0标示本机所有地址
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_LISTENPORT=7050
+
+      # ORDERER所在组织的MSP ID
+      - ORDERER_GENERAL_LOCALMSPID=Dev
+      # ORDERER自己的msp文件夹
+      - ORDERER_GENERAL_LOCALMSPDIR=/etc/hyperledger/fabric/mymsp
+      # ORDERER的TLS通讯证书相关
+      - ORDERER_GENERAL_TLS_ENABLED=false
+      # 指定创世区块的位置 
+      - ORDERER_GENERAL_BOOTSTRAPMETHOD=file  
+      - ORDERER_GENERAL_BOOTSTRAPFILE=/etc/hyperledger/fabric/genesis.block
+
+      # 系统监控配置
+      # 打开Prometheus接口
+      - ORDERER_METRICS_PROVIDER=prometheus
+      # 监控服务Operations Service端口
+      - ORDERER_OPERATIONS_LISTENADDRESS=0.0.0.0:17050   
+
+    command: orderer
+    working_dir: /var/hyperledger/data
+    hostname: orderer.dev
+    networks:
+        mhnet:
+    volumes:
+      - etc-orderer-dev:/etc/hyperledger/fabric
+      - var-orderer-dev:/var/hyperledger
+    ports:
+      - 7050:7050
+      - 17050:17050
+        
+       
+         
+# peer service
+  peer1-dev:
+    container_name: peer1-dev
+    image: hyperledger/fabric-peer:2.2.4
+    environment:
+        # MSPID, 本组织的OrgID，等同于configtx.yaml中配置的Organization的ID
+        - CORE_PEER_LOCALMSPID=Dev
+        # 本peer的msp路径 
+        - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/mymsp
+
+
+        # Docker虚拟机的地址，在peer创建chaincode虚拟机时使用，在mac/windows上配置如下 
+        - CORE_VM_ENDPOINT=unix:///var/run/docker.sock
+        # 设置chaincode的网络,一般设置和本peer网络一样  
+        - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=mhnet
+        # 日志等级
+        - FABRIC_LOGGING_SPEC=INFO
+         
+        # TLS通讯证书配置
+        - CORE_PEER_TLS_ENABLED=false
+
+        # Peer 端口配置
+        - CORE_PEER_ID=peer1.dev
+        - CORE_PEER_ADDRESS=peer1.dev:8050
+        - CORE_PEER_LISTENADDRESS=0.0.0.0:8050
+        - CORE_PEER_CHAINCODEADDRESS=peer1.dev:8150
+        - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:8150
+        - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.dev:8050
+        - CORE_PEER_GOSSIP_ENDPOINT=peer1.dev:8050
+        - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.dev:8050
+
+        # 监控配置          
+        # 打开Prometheus服务
+        - CORE_METRICS_PROVIDER=prometheus
+        # 监控地址和端口 
+        - CORE_OPERATIONS_LISTENADDRESS=0.0.0.0:18050   
+          
+    command: peer node start --peer-chaincodedev=true
+    working_dir: /var/hyperledger/data
+    
+    hostname: peer1.dev
+    
+    ports:
+        - 8050:8050
+        - 18050:18050
+
+    volumes:
+        # /var/run/docker.sock这个配置很关键，用于和上面的CORE_VM_ENDPOINT配合，指明docker程序的endpoint
+        - /var/run/docker.sock:/var/run/docker.sock
+        - etc-peer1-dev:/etc/hyperledger/fabric
+        - var-peer1-dev:/var/hyperledger 
+
+    networks:
+        mhnet:
+
+
+
+# cli service
+  cli-dev:
+    container_name: cli-dev
+    image: hyperledger/fabric-tools:2.2.4
+    tty: true
+    stdin_open: true
+    environment:
+        # MSPID, 本组织的OrgID，等同于configtx.yaml中配置的Organization的ID
+        - CORE_PEER_LOCALMSPID=Dev
+        # 本组织admin的msp路径,这个不同于peer的设置
+        # 之所以是admin的msp,是一些操作，比如join channel, 提交链码等，必须是admin操作
+        # 此时使用的工具，比如peer,需要CORE_PEER_MSPCONFIGPATH变量设置为admin的msp
+        # 才能执行peer channel join这样的操作
+        - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/admin-msp
+
+
+        # Docker虚拟机的地址，在peer创建chaincode虚拟机时使用，在mac/windows上
+        - CORE_VM_ENDPOINT=unix:///var/run/docker.sock
+        # 设置chaincode的网络,一般设置和本peer网络一样
+        - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=mhnet
+        # 日志等级
+        - FABRIC_LOGGING_SPEC=INFO
+
+        # TLS通讯证书配置
+        - CORE_PEER_TLS_ENABLED=false
+
+        # Peer 端口配置
+        - CORE_PEER_ID=peer1-dev
+        - CORE_PEER_ADDRESS=peer1.dev:8050
+
+    command: sh
+    working_dir: /var/hyperledger/data
+    volumes:
+        # /var/run/docker.sock这个配置很关键，用于和上面的CORE_VM_ENDPOINT配合 ，指明docker程序的endpoint
+        - /var/run/docker.sock:/var/run/docker.sock
+        - etc-cli-dev:/etc/hyperledger/fabric
+        - var-cli-dev:/var/hyperledger
+
+    networks:
+        mhnet:
